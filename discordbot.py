@@ -1,80 +1,64 @@
 import discord
-import openai
-from discord.ext import commands
+import boto3
+import json
+from datetime import date
+
+ssm = boto3.client("ssm")
 
 # 環境変数からトークンを取得
-DISCORD_TOKEN = "DiscordToken"
-OPENAI_API_KEY = "OpenAIAPIKEY"
+response = ssm.get_parameter(
+    Name = "DISCORD_TOKEN",
+    WithDecryption = False
+)
+DISCORD_TOKEN = response["Parameter"]["Value"]
 
-# OpenAI APIキーを設定
-openai.api_key = OPENAI_API_KEY
-
-# Discordのインテント設定
+# Intentsの設定
 intents = discord.Intents.default()
 intents.messages = True
+intents.guilds = True
 intents.message_content = True
 
-# Discord Botの初期化
-bot = commands.Bot(command_prefix="!", intents=intents)
+# BOTへ接続するオブジェクトを定義
+client = discord.Client(intents=intents)
 
-# 会話履歴を保持する辞書
-conversation_history = {}
+# スクリプト起動時処理
+@client.event
+async def on_ready():
+    print('Botログインしました')
 
-# ChatGPT APIを呼び出す関数
-async def ask_chatgpt(user_id, user_message):
-    if user_id not in conversation_history:
-        conversation_history[user_id] = []
-
-    # ユーザーのメッセージを履歴に追加
-    conversation_history[user_id].append({"role": "user", "content": user_message})
-
-    try:
-        # ChatGPT APIを非同期で呼び出し
-        response = await openai.ChatCompletion.acreate(
-            model="gpt-3.5-turbo",
-            messages=conversation_history[user_id],
-        )
-    except openai.error.OpenAIError as e:
-        return f"OpenAI APIでエラーが発生しました: {e}"
-    except Exception as e:
-        return f"その他のエラーが発生しました: {e}"
-
-    try:
-        # ChatGPTの応答を取得
-        bot_response = response["choices"][0]["message"]["content"]
-    except KeyError as e:
-        return f"応答の形式が不正です: {e}"
-    except Exception as e:
-        return f"応答の処理中にエラーが発生しました: {e}"
-
-    # 応答を履歴に追加
-    conversation_history[user_id].append({"role": "assistant", "content": bot_response})
-
-    # 履歴が多すぎる場合、古い履歴を削除
-    if len(conversation_history[user_id]) > 20:
-        conversation_history[user_id] = conversation_history[user_id][-20:]
-
-    return bot_response
-
-# メッセージ受信イベント
-@bot.event
+# メッセージ受信時に動作する処理
+@client.event
 async def on_message(message):
-    if message.author.bot:  # Botのメッセージは無視
+    # メッセージ送信者がBotだった場合は無視する
+    if message.author.bot:
         return
-    print(message)
+    # 「/neko」と発言したら「にゃーん」が返る処理
+    if message.content == '/neko':
+        await message.channel.send('にゃーん')
 
-    # ユーザーIDを取得
-    user_id = str(message.author.id)
-    user_message = message.content
-    print(user_id)
-    print(user_message)
+    # 「/tree」と発言したら「今日のツリーID」が返る処理
+    if message.content == '/tree':
+        # 今日のday値を確認
+        tree_criterion_date = int(739160)
+        serial_value_date = int(date.today().toordinal())
+        tree_date_diff = serial_value_date - tree_criterion_date
+        tree_day_diff = tree_date_diff % 28
 
-    # ChatGPTに質問
-    bot_response = await ask_chatgpt(user_id, user_message)
-    print(bot_response)
+        #今日の日付を生成
+        today_date = date.today().strftime('%m月%d日')
 
-    # 応答を送信
-    await message.channel.send(bot_response)
+        # ツリー情報を取得
+        with open("treeDate.json","r") as f:
+            tree_dict = json.load(f)
+            today_detail = next((item for item in tree_dict['treeDate'] if item['day'] == str(tree_day_diff)), None)
+            today_id = today_detail["data"]["id"]
+            today_treeType = today_detail["data"]["treeType"]
+            today_point = today_detail["data"]["point"]
 
-# Botの起動
-bot.run(DISCORD_TOKEN)
+            # メッセージ成形
+            tree_message_body = str("今日は" + today_date + "だね！\nGPIDが" + today_id + "の人の" + today_treeType + "色ツリー🌳から" + today_point + "ポイントもらえるね！✨")
+
+        await message.channel.send(tree_message_body)
+
+# Botの起動とDiscordサーバーへの接続
+client.run(DISCORD_TOKEN)
