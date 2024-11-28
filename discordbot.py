@@ -21,7 +21,7 @@ intents.message_content = True
 # BOTへ接続するオブジェクトを定義
 client = discord.Client(intents=intents)
 
-with open("animal.json", "r") as f:
+with open("animal.json", "r", encoding="utf=8") as f:
     animal_dict = json.load(f)
     animal_names = animal_dict["animals"]
 
