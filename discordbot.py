@@ -62,7 +62,7 @@ async def on_message(message):
             today_point = today_detail["data"]["point"]
 
             # メッセージ成形
-            tree_message_body = str("今日は" + today_date + "だね！\nGPIDが" + today_id + "の人の" + today_treeType + "色ツリー🌳から" + today_point + "ポイントもらえるね！✨")
+            tree_message_body = str("今日は" + today_date + "だね！\nGPIDが" + today_id + "の人の" + today_treeType + "色ツリー🌳から" + today_point + "ポイントもらえるよー！✨")
 
         await message.channel.send(tree_message_body)
 
