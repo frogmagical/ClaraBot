@@ -2,6 +2,7 @@ import discord
 import boto3
 import json
 import asyncio
+import random
 from datetime import date, datetime, time
 
 ssm = boto3.client("ssm")
@@ -19,8 +20,13 @@ intents.messages = True
 intents.guilds = True
 intents.message_content = True
 
+# 定期タスクの登録をsetup_hookに移動
+class MyClient(discord.Client):
+    async def setup_hook(self):
+        self.loop.create_task(send_event_notifications())
+
 # BOTへ接続するオブジェクトを定義
-client = discord.Client(intents=intents)
+client = MyClient(intents=intents)
 
 with open("animal.json", "r", encoding="utf-8") as f:
     animal_dict = json.load(f)
@@ -28,22 +34,35 @@ with open("animal.json", "r", encoding="utf-8") as f:
 
 async def send_event_notifications():
     await client.wait_until_ready()
-    channel_id = 981151248499769406 # 告知先チャンネルID
+    channel_id = 981151248499769406  # 告知先チャンネルIDをここに指定
     channel = client.get_channel(channel_id)
     if channel is None:
-        print("チャンネルが見つからなかった！")
+        print("チャンネルが見つかりません")
         return
 
     while not client.is_closed():
         now = datetime.now()
-        # 水曜日22:00のイベント
-        if now.weekday() == 2 and now.time() >= time(22, 0) and now.time() < time(22, 1): 
-            await channel.send("📢今日は水曜日！22時からチームオーダー消化会をするよ！")
-        # 日曜日20:00のイベント
-        elif now.weekday() == 6 and now.time() >= time(20, 0) and now.time() < time(20, 1):
-            await channel.send("📢今日は日曜日！20時からみんなでエステで遊ぶよ！よかったらきてね！")
-        # 1分ごとにチェックする
-        await asyncio.sleep(60)
+        if now.weekday() == 2 and now.time() >= time(21, 0) and now.time() < time(21, 1):  # 水曜日22:00
+            # メッセージ候補を生成
+            wedMessages = [
+                f"📢今日は水曜日！22時からチームイベント消化をやるよ！\nよかったら手伝ってー＞＜！",
+                f"📢水曜日の22時といったらチムオダ消化の会だよね！？\nチムマグ維持とかに大助かりなので…ぜひ来てほしいな～！",
+                f"📢Today is Wednesday! We'll have a team event at 10pm! :)\n…つまり水曜日なのでチームオーダー消化の日だよ！ってこと～！",
+            ]
+            # ランダムに選択
+            wed_message_body = random.choice(wedMessages)
+            await channel.send(wed_message_body)
+        elif now.weekday() == 6 and now.time() >= time(19, 0) and now.time() < time(19, 1):  # 日曜日20:00
+            # メッセージ候補を生成
+            sunMessages = [
+                f"📢今日は日曜日！20時からエステでコーデを作るイベントをやるよ！\n気軽に遊びに来てね！",
+                f"📢みんなエステパスは持った？\n今日は20時からエステイベントの日なんだよ！忘れちゃだめだよー！！",
+                f"📢にちようびーのーにじゅうじはーエーステーのひー！\n今日は一体どんなお題がでるんだろう…？？",
+            ]
+            # ランダムに選択
+            sun_message_body = random.choice(sunMessages)
+            await channel.send(sun_message_body)
+        await asyncio.sleep(60)  # 1分ごとにチェック
 
 # スクリプト起動時処理
 @client.event
@@ -81,13 +100,16 @@ async def on_message(message):
             today_treeType = today_detail["data"]["treeType"]
             today_point = today_detail["data"]["point"]
 
-            # メッセージ成形
-            tree_message_body = str("今日は" + today_date + "だね！\nGPIDが" + today_id + "の人の" + today_treeType + "色ツリー\ud83c\udf33から" + today_point + "ポイントもらえるよー！\u2728")
+            # メッセージ候補を生成
+            treeMessages = [
+                f"今日は{today_date}だね！\nGPIDが{today_id}の人の{today_treeType}色ツリー🌳から{today_point}ポイントもらえるよー！✨",
+                f"むにゃむにゃ…今日のツリー…？今日は{today_date}だよね…\nGPIDは{today_id}で…{today_treeType}色じゃない…？もう起こさないでね…( ˘ω˘ )",
+                f"もい！今日はGPID{today_id}の人の{today_treeType}色ツリー🌳から{today_point}ポイントを回収するのよ！"
+            ]
+            # ランダムに選択
+            tree_message_body = random.choice(treeMessages)
 
         await message.channel.send(tree_message_body)
-
-# 定期タスクの登録
-client.loop.create_task(send_event_notifications())
 
 # Botの起動とDiscordサーバーへの接続
 client.run(DISCORD_TOKEN)
