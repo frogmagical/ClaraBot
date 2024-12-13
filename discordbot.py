@@ -41,10 +41,11 @@ with open("animal.json", "r", encoding="utf-8") as f:
 
 async def send_event_notifications():
     await client.wait_until_ready()
-    channel_id = DISCORD_NOTIFICATE_CHANNEL_ID
+    channel_id = int(DISCORD_NOTIFICATE_CHANNEL_ID)
     channel = client.get_channel(channel_id)
+    print(f"Success loggin to Channel: {channel}!")
     if channel is None:
-        print("チャンネルが見つかりません…")
+        print("Not found Notificate Channel.")
         return
 
     while not client.is_closed():
@@ -75,7 +76,7 @@ async def send_event_notifications():
 # スクリプト起動時処理
 @client.event
 async def on_ready():
-    print("Botログインしました")
+    print("Success loggin to your Discord Server!")
 
 # メッセージ受信時に動作する処理
 @client.event
