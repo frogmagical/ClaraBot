@@ -14,6 +14,13 @@ response = ssm.get_parameter(
 )
 DISCORD_TOKEN = response["Parameter"]["Value"]
 
+response = ssm.get_parameter(
+    Name="DISCORD_NOTIFICATE_CHANNEL_ID",
+    WithDecryption=False
+)
+DISCORD_NOTIFICATE_CHANNEL_ID = response["Parameter"]["Value"]
+
+
 # Intentsの設定
 intents = discord.Intents.default()
 intents.messages = True
@@ -34,10 +41,10 @@ with open("animal.json", "r", encoding="utf-8") as f:
 
 async def send_event_notifications():
     await client.wait_until_ready()
-    channel_id = 981151248499769406  # 告知先チャンネルIDをここに指定
+    channel_id = DISCORD_NOTIFICATE_CHANNEL_ID
     channel = client.get_channel(channel_id)
     if channel is None:
-        print("チャンネルが見つかりません")
+        print("チャンネルが見つかりません…")
         return
 
     while not client.is_closed():
@@ -52,6 +59,7 @@ async def send_event_notifications():
             # ランダムに選択
             wed_message_body = random.choice(wedMessages)
             await channel.send(wed_message_body)
+            
         elif now.weekday() == 6 and now.time() >= time(19, 0) and now.time() < time(19, 1):  # 日曜日20:00
             # メッセージ候補を生成
             sunMessages = [
