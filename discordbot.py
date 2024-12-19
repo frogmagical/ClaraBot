@@ -86,10 +86,10 @@ async def on_message(message):
         return
 
     # 説明書
-    if message.content == "/torisetu":
-        function01 = ("/tree: 今日のクリスペツリーのIDをお答えするよ！")
-        function02 = ("/omikuji: 今日のあなたの運勢を占うよ！ケッハモルタアケッハモヌラタアイナラウデンブキ！")
-        function03 = ("/neko: 私が鳴いちゃう！…ちょっ…なんの機能よこれー！？")
+    if message.content == "!torisetu":
+        function01 = ("!tree: 今日のクリスペツリーのIDをお答えするよ！")
+        function02 = ("!omikuji: 今日のあなたの運勢を占うよ！ケッハモルタアケッハモヌラタアイナラウデンブキ！")
+        function03 = ("!neko: 私が鳴いちゃう！…ちょっ…なんの機能よこれー！？")
         torisetu_message = (f"いま私ができることはこんなかんじだよ！\n{function01}\n{function02}\n{function03}")
         await message.channel.send(torisetu_message)
 
@@ -99,7 +99,7 @@ async def on_message(message):
             await message.channel.send(animal_cry)
     
     # おみくじの時間
-    if message.content == "/omikuji":
+    if message.content == "!omikuji":
         with open("omikuji.json", "r", encoding="utf-8") as f:
             omikuji_data = json.load(f)
             omikuji_num = str(random.randint(0,99)).zfill(3)
@@ -108,8 +108,8 @@ async def on_message(message):
             omikuji_message = (f"今日の{omikuji_user}ちゃんの運勢は…{result['Unsei']}\n{result['Comment']}")
             await message.channel.send(omikuji_message)
 
-    # 「/tree」と発言したら「今日のツリーID」が返る処理
-    if message.content == "/tree":
+    # 「!tree」と発言したら「今日のツリーID」が返る処理
+    if message.content == "!tree":
         # 今日のday値を確認
         tree_criterion_date = int(739160)
         serial_value_date = int(date.today().toordinal())
