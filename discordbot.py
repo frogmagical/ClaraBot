@@ -20,6 +20,10 @@ response = ssm.get_parameter(
 )
 DISCORD_NOTIFICATE_CHANNEL_ID = response["Parameter"]["Value"]
 
+# 動物の名前辞書を事前定義
+with open("animal.json", "r", encoding="utf-8") as f:
+    animal_dict = json.load(f)
+    animal_names = animal_dict["animals"]
 
 # Intentsの設定
 intents = discord.Intents.default()
@@ -91,9 +95,6 @@ async def on_message(message):
 
     # どうぶつが辞書内で合致したら鳴き声が返る処理
     if message.content in animal_names:
-        with open("animal.json", "r", encoding="utf-8") as f:
-            animal_dict = json.load(f)
-            animal_names = animal_dict["animals"]
             animal_cry = animal_names[(message.content)]
             await message.channel.send(animal_cry)
     
