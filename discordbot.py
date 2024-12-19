@@ -35,10 +35,6 @@ class MyClient(discord.Client):
 # BOTへ接続するオブジェクトを定義
 client = MyClient(intents=intents)
 
-with open("animal.json", "r", encoding="utf-8") as f:
-    animal_dict = json.load(f)
-    animal_names = animal_dict["animals"]
-
 async def send_event_notifications():
     await client.wait_until_ready()
     channel_id = int(DISCORD_NOTIFICATE_CHANNEL_ID)
@@ -85,10 +81,30 @@ async def on_message(message):
     if message.author.bot:
         return
 
+    # 説明書
+    if message.content == "/torisetu":
+        function01 = ("/tree: 今日のクリスペツリーのIDをお答えするよ！")
+        function02 = ("/omikuji: 今日のあなたの運勢を占うよ！ケッハモルタアケッハモヌラタアイナラウデンブキ！")
+        function03 = ("/neko: 私が鳴いちゃう！…ちょっ…なんの機能よこれー！？")
+        torisetu_message = (f"いま私ができることはこんなかんじだよ！\n{function01}\n{function02}\n{function03}")
+        await message.channel.send(torisetu_message)
+
     # どうぶつが辞書内で合致したら鳴き声が返る処理
     if message.content in animal_names:
-        animal_cry = animal_names[(message.content)]
-        await message.channel.send(animal_cry)
+        with open("animal.json", "r", encoding="utf-8") as f:
+            animal_dict = json.load(f)
+            animal_names = animal_dict["animals"]
+            animal_cry = animal_names[(message.content)]
+            await message.channel.send(animal_cry)
+    
+    # おみくじの時間
+    if message.content == "/omikuji":
+        with open("omikuji.json", "r", encoding="utf-8") as f:
+            omikuji_data = json.load(f)
+            omikuji_num = str(random.randint(0,99)).zfill(3)
+            result = omikuji_data[omikuji_num]
+            omikuji_message = (f"今日のあなたの運勢は…{result['Unsei']}{result['Comment']}")
+            await message.channel.send(omikuji_message)
 
     # 「/tree」と発言したら「今日のツリーID」が返る処理
     if message.content == "/tree":
