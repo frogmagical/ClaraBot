@@ -104,7 +104,8 @@ async def on_message(message):
             omikuji_data = json.load(f)
             omikuji_num = str(random.randint(0,99)).zfill(3)
             result = omikuji_data[omikuji_num]
-            omikuji_message = (f"今日のあなたの運勢は…{result['Unsei']}{result['Comment']}")
+            omikuji_user = message.author.name
+            omikuji_message = (f"今日の{omikuji_user}ちゃんの運勢は…{result['Unsei']}\n{result['Comment']}")
             await message.channel.send(omikuji_message)
 
     # 「/tree」と発言したら「今日のツリーID」が返る処理
