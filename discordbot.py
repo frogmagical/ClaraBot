@@ -2,6 +2,7 @@ import discord
 import boto3
 import json
 import asyncio
+import re
 import random
 from datetime import date, datetime, time
 
@@ -25,6 +26,9 @@ with open("animal.json", "r", encoding="utf-8") as f:
     animal_dict = json.load(f)
     animal_names = animal_dict["animals"]
 
+# サイコロ用の正規表現パターン定義
+dicePattern = r"^!\d+d\d+$"
+
 # Intentsの設定
 intents = discord.Intents.default()
 intents.messages = True
@@ -40,6 +44,7 @@ class MyClient(discord.Client):
 client = MyClient(intents=intents)
 
 async def send_event_notifications():
+    # ログイン処理
     await client.wait_until_ready()
     channel_id = int(DISCORD_NOTIFICATE_CHANNEL_ID)
     channel = client.get_channel(channel_id)
@@ -48,6 +53,7 @@ async def send_event_notifications():
         print("Not found Notificate Channel.")
         return
 
+    # チムイベ告知タイマー
     while not client.is_closed():
         now = datetime.now()
         if now.weekday() == 2 and now.time() >= time(21, 0) and now.time() < time(21, 1):  # 水曜日22:00
@@ -85,7 +91,7 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # 説明書
+    # トリセツ
     if message.content == "!torisetu":
         function01 = ("!tree: 今日のクリスペツリーのIDをお答えするよ！")
         function02 = ("!omikuji: 今日のあなたの運勢を占うよ！ケッハモルタアケッハモヌラタアイナラウデンブキ！")
@@ -93,7 +99,7 @@ async def on_message(message):
         torisetu_message = (f"いま私ができることはこんなかんじだよ！\n{function01}\n{function02}\n{function03}")
         await message.channel.send(torisetu_message)
 
-    # どうぶつが辞書内で合致したら鳴き声が返る処理
+    # どうぶつ名が辞書内で合致したら鳴き声が返る処理
     if message.content in animal_names:
             animal_cry = animal_names[(message.content)]
             await message.channel.send(animal_cry)
@@ -107,6 +113,21 @@ async def on_message(message):
             omikuji_user = message.author.name
             omikuji_message = (f"今日の{omikuji_user}ちゃんの運勢は…{result['Unsei']}\n{result['Comment']}")
             await message.channel.send(omikuji_message)
+    
+    # サイコロを振ってみよう
+    if re.match(dicePattern, message.content):
+        textBody = message.content
+        dice = textBody.lstrip("!")
+        diceData = dice.split('d')
+        diceCount = diceData[0]
+        diceType = diceData[1]
+        diceSum = 0
+        for i in range(int(diceCount)):
+            diceNum = random.randint(1, int(diceType))
+            diceSum = diceSum + diceNum
+        dice_message = (f"{dice}を振ったよ！{diceSum}だ！")
+        await message.channel.send(dice_message)
+
 
     # 「!tree」と発言したら「今日のツリーID」が返る処理
     if message.content == "!tree":
