@@ -118,6 +118,7 @@ async def on_message(message):
     # サイコロを振ってみよう
     if re.match(dicePattern, message.content):
         text_body = message.content
+        dice_user = message.author.name
         dice = text_body.lstrip("!")
         dice_data = dice.split('d')
         dice_count = dice_data[0]
@@ -127,8 +128,8 @@ async def on_message(message):
             dice_num = random.randint(1, int(dice_type))
             dice_sum = dice_sum + dice_num
         dice_messages = [
-            f"{omikuji_user} は {dice} を振った！ {dice_sum} だった！",
-            f"{omikuji_user}：{dice} => {dice_sum}",
+            f"{dice_user} は {dice} を振った！ {dice_sum} だった！",
+            f"{dice_user}：{dice} => {dice_sum}",
             f"{dice}の結果は…{dice_sum}！"
         ]
         dice_message_body = random.choice(dice_messages)
