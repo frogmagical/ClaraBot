@@ -94,10 +94,11 @@ async def on_message(message):
     # トリセツ
     if message.content == "!torisetu":
         function01 = ("!tree: 今日のクリスペツリーのIDをお答えするよ！")
-        function02 = ("!omikuji: 今日のあなたの運勢を占うよ！ケッハモルタアケッハモヌラタアイナラウデンブキ！")
+        function02 = ("!omikuji: 今日のあなたの運勢を占うよ！")
         function03 = ("!neko: 私が鳴いちゃう！…ちょっ…なんの機能よこれー！？")
-        torisetu_message = (f"いま私ができることはこんなかんじだよ！\n{function01}\n{function02}\n{function03}")
-        await message.channel.send(torisetu_message)
+        function04 = ("!2d6: とりあえず2d6振っちゃう？ダイスの種類と個数は自由な数字でも大丈夫！")
+        torisetu_message_body = (f"いま私ができることはこんなかんじだよ！\n{function01}\n{function02}\n{function03}\n{function04}")
+        await message.channel.send(torisetu_message_body)
 
     # どうぶつ名が辞書内で合致したら鳴き声が返る処理
     if message.content in animal_names:
@@ -116,18 +117,22 @@ async def on_message(message):
     
     # サイコロを振ってみよう
     if re.match(dicePattern, message.content):
-        textBody = message.content
-        dice = textBody.lstrip("!")
-        diceData = dice.split('d')
-        diceCount = diceData[0]
-        diceType = diceData[1]
-        diceSum = 0
-        for i in range(int(diceCount)):
-            diceNum = random.randint(1, int(diceType))
-            diceSum = diceSum + diceNum
-        dice_message = (f"{dice}を振ったよ！{diceSum}だ！")
-        await message.channel.send(dice_message)
-
+        text_body = message.content
+        dice = text_body.lstrip("!")
+        dice_data = dice.split('d')
+        dice_count = dice_data[0]
+        dice_type = dice_data[1]
+        dice_sum = 0
+        for i in range(int(dice_count)):
+            dice_num = random.randint(1, int(dice_type))
+            dice_sum = dice_sum + dice_num
+        dice_messages = [
+            f"{omikuji_user} は {dice} を振った！ {dice_sum} だった！",
+            f"{omikuji_user}：{dice} => {dice_sum}",
+            f"{dice}の結果は…{dice_sum}！"
+        ]
+        dice_message_body = random.choice(dice_messages)
+        await message.channel.send(dice_message_body)
 
     # 「!tree」と発言したら「今日のツリーID」が返る処理
     if message.content == "!tree":
@@ -149,13 +154,13 @@ async def on_message(message):
             today_point = today_detail["data"]["point"]
 
             # メッセージ候補を生成
-            treeMessages = [
+            tree_messages = [
                 f"今日は{today_date}だね！\nGPIDが{today_id}の人の{today_treeType}色ツリー🌳から{today_point}ポイントもらえるよー！✨",
                 f"むにゃむにゃ…今日のツリー…？今日は{today_date}だよね…\nGPIDは{today_id}で…{today_treeType}色じゃない…？もう起こさないでね…( ˘ω˘ )",
                 f"もい！今日はGPID{today_id}の人の{today_treeType}色ツリー🌳から{today_point}ポイントを回収するのよ！"
             ]
             # ランダムに選択
-            tree_message_body = random.choice(treeMessages)
+            tree_message_body = random.choice(tree_messages)
 
         await message.channel.send(tree_message_body)
 
